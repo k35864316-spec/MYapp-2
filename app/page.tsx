@@ -32,6 +32,12 @@ export default function Home() {
         >
           /Product 페이지로 이동 (파일 기반 라우팅 확인) →
         </Link>
+        <Link
+          href="/notices"
+          className="text-sm font-medium text-zinc-950 underline underline-offset-4 dark:text-zinc-50"
+        >
+          /notice 페이지로 이동 (파일 기반 라우팅 확인) →
+        </Link>
       </main>
     </div>
   );
