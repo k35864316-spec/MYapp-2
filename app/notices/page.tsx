@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import { getNotices } from '@/lib/notices';
 
+// DB에서 데이터를 읽는 페이지이므로 빌드 시점에 미리 만들지 않고,
+// 요청이 올 때마다 서버에서 렌더링합니다. (빌드 중 DB 접속 방지)
+export const dynamic = 'force-dynamic';
+
 // products/page.tsx와 똑같은 패턴입니다: Server Component에서 바로
 // await로 데이터를 가져오고, 끝날 때까지 loading.tsx가 대신 보입니다.
 export default async function NoticesPage() {

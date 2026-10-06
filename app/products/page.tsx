@@ -1,6 +1,10 @@
 import { getProducts } from '@/lib/products';
 import Link from 'next/link';
 
+// DB에서 데이터를 읽는 페이지이므로 빌드 시점에 미리 만들지 않고,
+// 요청이 올 때마다 서버에서 렌더링합니다. (빌드 중 DB 접속 방지)
+export const dynamic = 'force-dynamic';
+
 export default async function ProductsPage() {
   const products = await getProducts();
 
