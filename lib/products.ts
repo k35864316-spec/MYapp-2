@@ -1,6 +1,6 @@
-import { isValidObjectId } from 'mongoose';
-import { connectDB } from './mongodb';
-import { Product as ProductModel } from '@/models/Product';
+// 6주차에 MongoDB로 교체되기 전까지 사용하는 임시(in-memory) 데이터입니다.
+// 함수를 async로 만들고 delay를 흉내낸 것은, 실제 DB 조회처럼 "시간이
+// 걸리는 데이터 페칭"을 재현해서 Suspense/loading.tsx 동작을 보기 위함입니다.
 
 export type Product = {
   id: string;
@@ -9,59 +9,45 @@ export type Product = {
   likes: number;
 };
 
-type ProductDocLike = {
-  _id: unknown;
-  name: string;
-  description: string;
-  likes: number;
-};
+const products: Product[] = [
+  {
+    id: '1',
+    name: '웹서버보안프로그래밍 머그컵',
+    description: '수업 중 마실 커피를 위한 머그컵',
+    likes: 3,
+  },
+  {
+    id: '2',
+    name: 'Next.js 스티커 팩',
+    description: '노트북에 붙이는 프레임워크 스티커 모음',
+    likes: 5,
+  },
+  {
+    id: '3',
+    name: 'OWASP Top 10 포스터',
+    description: '책상 앞에 붙여두는 보안 체크리스트',
+    likes: 8,
+  },
+];
 
-function toProduct(doc: ProductDocLike): Product {
-  return {
-    id: String(doc._id),
-    name: doc.name,
-    description: doc.description,
-    likes: doc.likes ?? 0,
-  };
-}
-
-// 컬렉션이 비어 있을 때만 기존 샘플 데이터를 한 번 넣어줍니다.
-async function seedIfEmpty() {
-  const count = await ProductModel.countDocuments();
-  if (count > 0) return;
-
-  await ProductModel.insertMany([
-    { name: '머그컵', description: '내가 애용하는 머그컵', likes: 3 },
-    { name: '스티커팩', description: '노트북에 붙이는 스티커', likes: 5 },
-    { name: 'OWASP 포스터', description: '보안 체크리스트', likes: 8 },
-    { name: '노트북', description: '윈도우 노트북', likes: 10 },
-    { name: '휴대폰', description: '갤럭시 폴드 8', likes: 2 },
-  ]);
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function getProducts(): Promise<Product[]> {
-  await connectDB();
-  await seedIfEmpty();
-  const docs = await ProductModel.find().sort({ createdAt: 1 }).lean();
-  return docs.map((doc) => toProduct(doc as ProductDocLike));
+  await delay(700); // 실제 DB 조회를 흉내내는 지연 — loading.tsx가 보이는 이유
+  return products;
 }
 
 export async function getProduct(id: string): Promise<Product | undefined> {
-  // 잘못된 형식의 id(예: /products/abc)는 DB 조회 없이 404 처리
-  if (!isValidObjectId(id)) return undefined;
-  await connectDB();
-  const doc = await ProductModel.findById(id).lean();
-  return doc ? toProduct(doc as ProductDocLike) : undefined;
+  await delay(400);
+  return products.find((p) => p.id === id);
 }
 
 export async function likeProduct(id: string): Promise<number> {
-  if (!isValidObjectId(id)) return 0;
-  await connectDB();
-  // $inc로 DB에서 원자적으로 +1 (동시에 여러 명이 눌러도 값이 꼬이지 않음)
-  const doc = await ProductModel.findByIdAndUpdate(
-    id,
-    { $inc: { likes: 1 } },
-    { new: true },
-  ).lean();
-  return doc ? (doc as ProductDocLike).likes : 0;
+  await delay(300);
+  const product = products.find((p) => p.id === id);
+  if (!product) return 0;
+  product.likes += 1;
+  return product.likes;
 }
